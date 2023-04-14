@@ -1,0 +1,670 @@
+import pygame
+import random
+pygame.init()
+
+# extras
+clock = pygame.time.Clock()
+music = pygame.mixer.music.load('sound/music.mp3')
+hit = pygame.mixer.Sound('sound/Jump 1.wav')
+endoverlay = pygame.image.load('picks/end/endoverlay.png')
+point = 0
+coin = 0
+time = 7200
+printtime = (time//60)
+black2count = 0
+pygame.display.set_icon(pygame.image.load("picks/icon.png"))
+pygame.display.set_caption("Bunnys VS Shdows")
+bg = pygame.image.load('picks/BG.png')
+hitsound = pygame.mixer.Sound('sound/Hit 1.wav')
+
+#The start of the line...
+home = True
+startbutton = pygame.surface.Surface((340,100))
+startbuttonrect = startbutton.get_rect(midtop = (450,370))
+
+howtoplaybutton = pygame.surface.Surface((340,100))
+howtoplaybuttonrect = startbutton.get_rect(midtop = (450,500))
+
+click = False
+
+ssf = pygame.font.SysFont('Calibri (Body)', 160, 160)
+startf = ssf.render('Start', False, "#77DD77")
+
+bsff = pygame.font.SysFont('Calibri (Body)', 113, 113)
+BVSf = bsff.render("Bunnys VS Shadows", False, "#00b9ff")
+
+htpf = pygame.font.SysFont('Calibri (Body)', 73, 160)
+howtoplayf = htpf.render('How to Play', False, "#77DD77")
+
+howtoplaytrue = False
+howtoplaystop = pygame.image.load("picks/extras/exit.png")
+howtoplaybg = pygame.image.load("picks/extras/howtoplay.png")
+howtoplaystoprect = howtoplaystop.get_rect(topleft = (0,0))
+
+#The end of the line...
+endscreen = False
+homebutton = pygame.surface.Surface((340,100))
+homebuttonrect = homebutton.get_rect(midtop = (450,370))
+esf = pygame.font.SysFont('Calibri (Body)', 160, 160)
+homef = esf.render('home', False, "#00b9ff")
+
+
+# upgrads
+upgscreen = pygame.image.load("picks/shopbg.png")
+moreheltbutton = pygame.image.load("picks/shop/morehelth.png")
+heal = pygame.image.load("picks/shop/healwall.png")
+moretimebutton = pygame.image.load("picks/shop/moretime.png")
+sold_out = pygame.image.load("picks/shop/sold out!!!.png")
+Exit = pygame.image.load("picks/shop/exit.png")
+Exit2 = pygame.image.load("picks/shop/exit2.png")
+noise = pygame.mixer.Sound('sound/Misc 2.wav')
+right = True
+left = False
+exitrect = Exit.get_rect(topright = (355,0))
+exit2rect = Exit2.get_rect(topright = (355,0))
+morehelthrect = moreheltbutton.get_rect(topleft = (10,60))
+moretimerect = moretimebutton.get_rect(topleft = (130,60))
+healwallrect = moretimebutton.get_rect(topleft = (250,60))
+morehelth = .2
+morehelthTrue = False
+moretimeTrue = False
+moretimecount = 0
+upgradeactive = False
+isblack2 = False
+
+# Fonts
+pf = pygame.font.SysFont('Calibri (Body)', 20, 20)
+cf = pygame.font.SysFont('Calibri (Body)', 40, 40)
+
+points = pf.render('Points:' + f'{point}', False, (0, 0, 0))
+pointsrect = points.get_rect(midbottom=(450, 750))
+
+coins = cf.render('Coins:' + f'{coin}', False, 40, 40)
+coinrect = coins.get_rect(midbottom=(pointsrect.midtop))
+
+endpoint = coin + point
+endsf = esf.render('score:' + f'{endpoint}', False, (0, 0, 0))
+endpointsrect = endsf.get_rect(center=(450,350))
+
+
+# Win
+winhight = 900
+winlenth = 750
+win = pygame.display.set_mode((winhight, winlenth))
+
+# platforms
+# 1
+platform1 = pygame.image.load("picks/extras/platform.png")
+platform1rect = platform1.get_rect(midtop=(900/2, 750/2+50))
+
+# 2
+platform2 = pygame.image.load("picks/extras/platform.png")
+platform2rect = platform2.get_rect(midtop=(900/4*3, 750/4))
+
+# 3
+platform3 = pygame.image.load("picks/extras/platform.png")
+platform3rect = platform3.get_rect(midtop=(900/4, 750/4))
+
+# pc
+pc = pygame.image.load("picks/extras/pcplatform.png")
+realpc = pygame.image.load("picks/extras/pc.png")
+pcrect = pc.get_rect(topright=(900, 100))
+
+
+# BUILD THE WALL, BUILD THE WALL
+wall1 = pygame.image.load('picks/extras/wall.png')
+walol1rect = wall1.get_rect(topleft=(100, 598+25))
+wall1hp = 100
+wall1hpfull = pygame.surface.Surface((wall1hp, 10))
+wall1hpemoty = pygame.surface.Surface((wall1hp, 10))
+wall1hpfullrect = wall1hpfull.get_rect(midtop=(125, 603))
+
+wall2 = pygame.image.load('picks/extras/wall.png')
+walol2rect = wall1.get_rect(topright=(800, 598+25))
+wall2hp = 100
+wall2hpfull = pygame.surface.Surface((wall2hp, 10))
+wall2hpemoty = pygame.surface.Surface((wall2hp, 10))
+wall2hpfullrect = wall1hpfull.get_rect(midtop=((775, 603)))
+
+
+# player
+playerright = [pygame.image.load("picks/player/R1.png"), pygame.image.load("picks/player/R2.png")]
+playerleft = [pygame.image.load("picks/player/L1.png"), pygame.image.load("picks/player/L2.png")]
+x = 0
+y = 0
+walkcount = 0
+playerrect = pygame.image.load("picks/player/R1.png").get_rect(topleft=(x, y))
+speed = 7
+gravity = True
+jumpcount = 0
+isjump = False
+hp = 800
+hpb = pygame.surface.Surface((hp, 25))
+
+
+#flying enemy
+fly1 = [pygame.image.load('picks/enemy2/2.1.png'), pygame.image.load('picks/enemy2/2.2.png')]
+fly1count = 0
+fly1x = 1200
+fly1y = 100
+shoulddrop1 = 0
+BOOMtrue = False
+explosion = pygame.mixer.Sound('sound/explosion.mp3')
+
+bomb1 = pygame.image.load('picks/enemy2/bomb2.png')
+bomb1x = fly1x + 60
+bomby = fly1y + 37
+bombdrop = False
+explotion = [pygame.image.load('picks/enemy2/BOOMB.png'), pygame.image.load('picks/enemy2/BOOMB2.png'),pygame.image.load('picks/enemy2/BOOMB3.png')]
+BOOMcount = 0
+BOOMx = -500
+BOOMrect = pygame.image.load('picks/enemy2/BOOMB3.png').get_rect(midbottom = (BOOMx,675))
+
+# enemy
+enemy1 = [pygame.image.load('picks/enemy/2.1.png'), pygame.image.load('picks/enemy/2.3.png'),
+          pygame.image.load('picks/enemy/2.3.png'), pygame.image.load('picks/enemy/2.4.png')]
+enemy1x = random.randint(-200, 0)
+enemy1y = 598
+enemy1walkcount = 0
+enemy1move = True
+
+enemy3 = [pygame.image.load('picks/enemy/2.1.png'), pygame.image.load('picks/enemy/2.3.png'),pygame.image.load('picks/enemy/2.3.png'), pygame.image.load('picks/enemy/2.4.png')]
+enemy3x = random.randint(-200, 0)
+enemy3y = 598
+enemy3walkcount = 0
+enemy3move = True
+
+enemy2 = [pygame.image.load('picks/enemy/1.1.png'), pygame.image.load('picks/enemy/1.3.png'),
+          pygame.image.load('picks/enemy/1.3.png'), pygame.image.load('picks/enemy/1.4.png')]
+enemy2x = random.randint(850, 1050)
+enemy2y = 598
+enemy2move = True
+enemy2walkcount = 3
+
+# partickls
+blackpartickle = pygame.surface.Surface((10, 10))
+blacklist = [blackpartickle, blackpartickle, blackpartickle,blackpartickle, blackpartickle, blackpartickle]
+isblack = False
+blackcount = 0
+
+redpartickle = pygame.surface.Surface((10, 10))
+redlist = [redpartickle, redpartickle, redpartickle]
+isred = False
+redcount = 0
+
+purplepartickle = pygame.surface.Surface((10, 10))
+purplelist = [purplepartickle,purplepartickle,purplepartickle,purplepartickle]
+ispurple = False
+ispurple2 = False
+purplecount = 0
+
+# while loop
+pygame.mixer.music.set_volume(.15)
+pygame.mixer.music.play(-1)
+while True:
+    clock.tick(60)
+    playerrect = pygame.image.load("picks/player/R1.png").get_rect(topleft=(x, y))
+
+    # forloopd
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            exit()
+
+    #GAMEPLAY
+    if not endscreen and not home and not howtoplaytrue:
+
+        #Extras
+        enemy1rect = pygame.image.load('picks/enemy/2.1.png').get_rect(topleft=(enemy1x, enemy1y))
+        enemy2rect = pygame.image.load('picks/enemy/1.1.png').get_rect(topleft=(enemy2x, enemy2y))
+        enemy3rect = pygame.image.load('picks/enemy/2.1.png').get_rect(topleft=(enemy3x, enemy3y))
+        BOOMrect = pygame.image.load('picks/enemy2/BOOMB3.png').get_rect(midbottom = (BOOMx,690))
+        playerrect = pygame.image.load("picks/player/R1.png").get_rect(topleft=(x, y))
+        endsf = esf.render('score:' + f'{endpoint}', False, (0, 0, 0))
+        endpointsrect = endsf.get_rect(center=(450,300))
+        wall1hpemoty.fill("#ff6961")
+        wall2hpemoty.fill("#ff6961")
+        hpb = pygame.surface.Surface((printtime, 25))
+        points = pf.render('Points:' + f'{point}', False, (0, 0, 0))
+        pointsrect = points.get_rect(midbottom=(450, 750))
+        coins = cf.render('Coins:' + f'{coin}', False, (10, 10, 10))
+        coinrect = coins.get_rect(midbottom=(pointsrect.midtop))
+        endpoint = coin + point
+        if not upgradeactive:
+            time -= 1
+        printtime = (time//9)
+        hp
+        if not pygame.mouse.get_pressed()[0]:
+            click = False
+
+        # gravity
+        if gravity == True:
+            y += 12
+
+        if y >= 570 or playerrect.colliderect(platform1rect) or playerrect.colliderect(platform2rect) or playerrect.colliderect(platform3rect) or playerrect.colliderect(pcrect) and not isjump:
+            gravity = False
+
+
+
+        else:
+            gravity = True
+
+        # input
+        keys = pygame.key.get_pressed()
+
+        if not upgradeactive:
+
+            if keys[pygame.K_d] and x < 850 and not playerrect.collidepoint(pcrect.midleft) or keys[pygame.K_RIGHT] and x < 850 and not playerrect.collidepoint(pcrect.midleft):
+                    x += speed
+                    right = True
+                    left = False
+                    walkcount += 1
+            elif keys[pygame.K_a] and x > 0 or keys[pygame.K_LEFT] and x > 0:
+                x -= speed
+                left = True
+                right = False
+                walkcount += 1
+
+            else:
+                walkcount = 0
+
+            if walkcount >= 40:
+                walkcount = 0
+
+            if not gravity:
+                if keys[pygame.K_SPACE] and isjump == False:
+                    jumpcount = 1
+                    gravity = False
+                    isjump = True
+        
+        #Upgrade 
+        if x >= 780 and y <= 60:
+            if not upgradeactive and keys[pygame.K_e]:
+                upgradeactive = True
+                noise.play()
+
+            if upgradeactive and keys[pygame.K_ESCAPE]:
+                upgradeactive = False
+                noise.play()
+
+        if jumpcount > 0:
+            jumpcount += 1
+            y -= 30
+            walkcount = 25
+            if jumpcount >= 15:
+                jumpcount = 0
+                isjump = False
+        
+        if platform1rect.collidepoint(playerrect.midtop) or platform1rect.collidepoint(playerrect.midtop) or platform3rect.collidepoint(playerrect.midtop) or pcrect.collidepoint(playerrect.midtop):
+            isjump = False
+            jumpcount = 0
+            y += 30
+
+
+        # enemyhitthing
+        if not upgradeactive:
+            if wall1hp > 0:
+                wall1hpfull = pygame.surface.Surface((wall1hp, 10))
+
+                if enemy1rect.colliderect(walol1rect):
+                    wall1hp -= morehelth
+                    enemy1move = False
+
+            else:
+                enemy1move = True
+
+
+            if enemy1x == 400:
+                enemy1x = random.randint(-300, -200)
+                hitsound.play()
+                time -= 300
+
+            if wall2hp > 0:
+                if enemy2rect.colliderect(walol2rect):
+                    wall2hp -= morehelth
+                    enemy2move = False
+                    ispurple2 = True
+                
+                else: 
+                    ispurple2 = False
+
+            else:
+                enemy2move = True
+                ispurple2 = False
+
+            if wall1hp > 0:
+                wall1hpfull = pygame.surface.Surface((wall1hp, 10))
+
+                if enemy3rect.colliderect(walol1rect):
+                    wall1hp -= morehelth
+                    enemy3move = False
+
+            else:
+                enemy3move = True
+
+            if enemy3x == 400:
+                enemy3x = random.randint(-300, -200)
+                hitsound.play()
+                time -= 300
+            
+            if enemy3rect.colliderect(walol1rect) and wall1hp > 0 or enemy1rect.colliderect(walol1rect) and wall1hp > 0:
+                ispurple = True
+            
+            else:
+                ispurple = False
+
+
+
+        if enemy2x == 500:
+            enemy2x = random.randint(1000, 1200)
+            hitsound.play()
+            time -= 300
+
+        if playerrect.collidepoint(enemy1rect.midright) or playerrect.collidepoint(enemy1rect.midleft):
+            time -= 7
+
+        if playerrect.collidepoint(enemy2rect.midright) or playerrect.collidepoint(enemy2rect.midleft):
+            time -= 7
+
+        if playerrect.collidepoint(enemy3rect.midright) or playerrect.collidepoint(enemy2rect.midleft):
+            time -= 7
+
+        # me... hit... bad... guy...
+        if playerrect.collidepoint((enemy1rect.midtop)) or playerrect.collidepoint((enemy1rect.topright)) or playerrect.collidepoint((enemy1rect.topleft)):
+            enemy1x = random.randint(-300, -200)
+            enemy1move = True
+            jumpcount = 1
+            isblack = True
+            hit.play()
+            point += 100
+            coin += random.randint(0, 10)
+
+        if playerrect.collidepoint((enemy2rect.midtop)) or playerrect.collidepoint((enemy2rect.topright)) or playerrect.collidepoint((enemy2rect.topleft)):
+            enemy2x = random.randint(1000, 1200)
+            enemy2move = True
+            jumpcount = 1
+            isblack = True
+            hit.play()
+            point += 100
+            coin += random.randint(0, 10)
+
+        if playerrect.collidepoint((enemy3rect.midtop)) or playerrect.collidepoint((enemy3rect.topright)) or playerrect.collidepoint((enemy3rect.topleft)):
+            enemy3x = random.randint(-300, -200)
+            enemy3move = True
+            jumpcount = 1
+            isblack = True
+            hit.play()
+            point += 100
+            coin += random.randint(0, 10)
+
+        # bad guy walk
+        if not upgradeactive:
+            enemy1walkcount += 1
+            enemy2walkcount += 1
+            enemy3walkcount += 1
+
+            if enemy1walkcount == 20:
+                enemy1walkcount = 0
+            if enemy2walkcount == 20:
+                enemy2walkcount = 0
+            if enemy3walkcount == 20:
+                enemy3walkcount = 0
+
+            if enemy2move:
+                enemy2x -= 1
+        
+            if enemy1move:
+                enemy1x += 1
+
+            if enemy3move:
+                enemy3x += 1
+        
+        #Bad Guy fly? What?
+        if not upgradeactive:
+            fly1x -= 3
+            if fly1x <= -1000:
+                fly1x = random.randint(1200,1400)
+                bombdrop = False
+                shoulddrop1 = 0
+
+            if not bombdrop:
+                    bomb1x = fly1x + 53
+                    bomby = fly1y + 30
+            
+            if fly1x > 400 and fly1x < 800 and not bombdrop:
+                shoulddrop1 = random.randint(1,40)
+            
+            if shoulddrop1 == 10:
+                bombdrop = True
+                bomb1x -= 2
+                bomby += 5
+            
+            if bomby >= 640:
+                BOOMx = bomb1x
+                BOOMtrue = True
+                explosion.play()
+                bomby -= 10000
+            
+            if BOOMtrue:
+                BOOMcount += 1
+                isblack2 = True
+                if BOOMcount >= 29:
+                    BOOMtrue = False 
+                    BOOMx += 900
+                    BOOMcount = 0
+                    isblack2 = False
+
+            
+            fly1count += 1
+            if fly1count >= 20:
+                fly1count = 0
+            
+            if playerrect.colliderect(BOOMrect):
+                time -= 15
+
+        # Blit
+        win.blit(bg, (0,0))
+        hpb.fill("#77dd77")
+
+        # platformsblit
+        win.blit(platform1, platform1rect)
+
+        win.blit(platform2, platform2rect)
+
+        win.blit(platform3, platform3rect)
+
+        win.blit(pc, (pcrect))
+        win.blit(realpc, (825, 65))
+
+        # enemyblit
+        win.blit(enemy1[enemy1walkcount//5], (enemy1x, enemy1y))
+        win.blit(enemy3[enemy3walkcount//5], (enemy3x, enemy3y))
+        win.blit(enemy2[enemy2walkcount//5], (enemy2x, enemy2y))
+
+        #flyblit
+        win.blit(fly1[fly1count//10], (fly1x,fly1y))
+        win.blit(bomb1, (bomb1x,bomby))
+        win.blit(explotion[BOOMcount//10], (BOOMrect))
+
+        # wallblit
+        if wall1hp > 1:
+            wall1hpfull.fill(("#77dd77"))
+            win.blit(wall1, (walol1rect))
+            win.blit(wall1hpemoty, (wall1hpfullrect))
+            win.blit(wall1hpfull, (wall1hpfullrect))
+
+        if wall2hp > 1:
+            wall2hpfull = pygame.surface.Surface((wall2hp, 10))
+            wall2hpfull.fill("#77dd77")
+            win.blit(wall2, (walol2rect))
+            win.blit(wall2hpemoty, (wall2hpfullrect))
+            win.blit(wall2hpfull, (wall2hpfullrect))
+
+        # playerblit
+        if right:
+            win.blit(playerright[walkcount//20], (x, y))
+        else:
+            win.blit(playerleft[walkcount//20], (x, y))
+        win.blit(hpb, (50, 20))
+
+        # fontblit
+        win.blit(coins, (coinrect))
+        win.blit(points, (pointsrect))
+
+        #upgradesys
+        if upgradeactive:
+            mousepos = pygame.mouse.get_pos()
+            win.blit(upgscreen, (0,0))
+
+            #buttons
+            upgscreen.blit(moreheltbutton, (morehelthrect))
+            upgscreen.blit(moretimebutton, (moretimerect))
+            upgscreen.blit(heal, (healwallrect))
+            upgscreen.blit(Exit2, (exit2rect))
+            upgscreen.blit(Exit, (exitrect))
+            if exitrect.collidepoint(mousepos) and pygame.mouse.get_pressed()[0]:
+                upgradeactive = False
+                noise.play()
+                isred = True
+            if not morehelthTrue:
+                if morehelthrect.collidepoint(mousepos) and pygame.mouse.get_pressed()[0] and coin >= 25:
+                    morehelthTrue = True
+                    noise.play()
+                    morehelth = .1
+                    coin -= 20
+            else:
+                win.blit(sold_out, (morehelthrect))
+            
+            if healwallrect.collidepoint(mousepos) and pygame.mouse.get_pressed()[0] and coin >= 25 and not click:
+                wall1hp += 20
+                wall2hp += 20
+                click = True
+                coin -= 25
+                noise.play()
+                if wall1hp > 100:
+                    wall1hp = 100
+
+                if wall2hp > 100:
+                    wall2hp = 100
+
+            if moretimecount < 5:
+                if moretimerect.collidepoint(mousepos) and pygame.mouse.get_pressed()[0] and coin >= 50 and not click:
+                    coin -= 50
+                    noise.play()
+                    time += 400
+                    click = True
+                    moretimecount += 1
+                    
+                    if time > 7200:
+                        time = 7200
+
+            else:
+                win.blit(sold_out, (moretimerect))
+
+
+        if isblack:
+            blackcount += 1
+            if blackcount >= 30:
+                isblack = False
+                blackcount = 0
+            for blackpartickle in blacklist:
+                win.blit(blackpartickle, (random.randint(x-20, x+100), random.randint(y+110, y+120)))
+
+
+        if isblack2:
+            black2count += 1
+            if black2count >= 30:
+                isblack2 = False
+                black2count = 0
+            for blackpartickle in blacklist:
+                win.blit(blackpartickle, (random.randint(BOOMx-50, BOOMx+70), random.randint(600, 660)))
+
+        if isred:
+            redcount += 1
+            if redcount >= 5:
+                isred = False
+                redcount = 0
+            for redpartickle in redlist:
+                redpartickle.fill((255,105,97))
+                win.blit(redpartickle, (random.randint(340, 380), random.randint(0, 30)))
+
+        if ispurple:
+            for purplepartickle in purplelist:
+                    purplepartickle.fill('#b78bd1')
+                    win.blit(purplepartickle, (random.randint(90, 150), random.randint(600, 700)))
+        if ispurple2:
+            for purplepartickle in purplelist:
+                    purplepartickle.fill('#b78bd1')
+                    win.blit(purplepartickle, (random.randint(730, 800), random.randint(600, 700)))
+        
+
+    
+        if time <= 0:
+            endscreen = True
+    
+    #ENDSCREEN
+    elif endscreen:
+        win.blit(endoverlay, (0,0))
+        win.blit(endsf, (endpointsrect))       
+        homebutton.fill("#77DD77")
+        win.blit(homebutton, (homebuttonrect))        
+        homebutton.blit(homef, (0,0))
+        win.blit(homebutton, (homebuttonrect))        
+        mousepos = pygame.mouse.get_pos()
+        if homebuttonrect.collidepoint(mousepos) and pygame.mouse.get_pressed()[0]:
+            home = True
+            endscreen = False
+            x = 0
+            y = 0
+            click = True
+        
+
+    elif home:
+        win.blit(bg, (0,0))
+        startbutton.fill("#00b9ff")
+        howtoplaybutton.fill("#00b9ff")
+        startbutton.blit(startf, (0,0))
+        howtoplaybutton.blit(howtoplayf, (0,30))
+        win.blit(startbutton, (startbuttonrect))
+        win.blit(howtoplaybutton, (howtoplaybuttonrect))
+        win.blit(BVSf, (0,200))
+        if not pygame.mouse.get_pressed()[0]:
+            click = False
+
+        mousepos = pygame.mouse.get_pos()
+        if howtoplaybuttonrect.collidepoint(mousepos) and pygame.mouse.get_pressed()[0]:
+            howtoplaytrue = True
+            home = False
+
+
+
+
+        if startbuttonrect.collidepoint(mousepos) and pygame.mouse.get_pressed()[0] and not click:
+            home = False
+            wall1hp = 100
+            wall2hp = 100
+            point = 0
+            coin = 0
+            time = 7200
+            fly1x = 1200
+            fly1y = 100
+            BOOMx = -520
+            enemy1x = random.randint(-200, 0)
+            enemy1y = 598
+            enemy3x = random.randint(-200, 0)
+            enemy3y = 598
+            enemy2x = random.randint(850, 1050)
+            enemy2y = 598
+            morehelthTrue = False
+            enemy1move = True
+            enemy2move = True
+            enemy3move = True
+
+    
+    elif howtoplaytrue:
+        win.blit(howtoplaybg, (0,0))
+        win.blit(howtoplaystop, (howtoplaystoprect))
+        mousepos = pygame.mouse.get_pos()
+        if howtoplaystoprect.collidepoint(mousepos) and pygame.mouse.get_pressed()[0]:
+            howtoplaytrue = False
+            home = True
+    pygame.display.update()
